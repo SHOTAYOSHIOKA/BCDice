@@ -101,8 +101,8 @@ class AddDice
           node = AddDice::Node::BinaryOp.new(node, :*, unary())
         elsif consume("/")
           rhs = unary()
-          klass = divide_node_class()
-          node = klass.new(node, rhs)
+          rounding_method = divide_rounding_method()
+          node = Node::Divide.new(node, rhs, rounding_method)
         else
           break
         end
@@ -111,18 +111,18 @@ class AddDice
       return node
     end
 
-    # 端数処理方法を示す記号を読み込み、対応する除算ノードのクラスを返す
-    # @return [Class] 除算ノードのクラス
-    def divide_node_class
+    # 端数処理方法を示す記号を読み込み、対応する端数処理方法を返す
+    # @return [Node::Divide::RoundingMethod]
+    def divide_rounding_method
       if consume('U')
         # 切り上げ
-        Node::DivideWithRoundingUp
+        Node::Divide::ROUND_UP
       elsif consume('R')
         # 四捨五入
-        Node::DivideWithRoundingOff
+        Node::Divide::ROUND_OFF
       else
         # 切り捨て
-        Node::DivideWithRoundingDown
+        Node::Divide::ROUND_DOWN
       end
     end
 
