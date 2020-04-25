@@ -123,35 +123,10 @@ class AddDice
 
     # 除算のノード
     class Divide < BinaryOp
-      # 端数処理方法
-      # @!attribute abbr
-      #   @return [String] 端数処理方法の略称
-      # @!attribute divide_and_round
-      #   @return [Proc] 除算→端数処理の手続き
-      RoundingMethod = Struct.new(:abbr, :divide_and_round)
-
-      # 切り上げ
-      ROUND_UP = RoundingMethod.new(
-        'U',
-        lambda { |dividend, divisor| (dividend.to_f / divisor).ceil }
-      ).freeze
-
-      # 四捨五入
-      ROUND_OFF = RoundingMethod.new(
-        'R',
-        lambda { |dividend, divisor| (dividend.to_f / divisor).round }
-      ).freeze
-
-      # 切り捨て
-      ROUND_DOWN = RoundingMethod.new(
-        '',
-        lambda { |dividend, divisor| dividend / divisor }
-      ).freeze
-
       # ノードを初期化する
       # @param [Object] dividend 被除数のノード
       # @param [Object] divisor 除数のノード
-      # @param [RoundingMethod] rounding_method 端数処理方法
+      # @param [String] rounding_method 端数処理方法
       def initialize(dividend, divisor, rounding_method)
         super(dividend, :/, divisor)
 
@@ -164,7 +139,7 @@ class AddDice
       #
       # @return [String]
       def to_s
-        "#{super}#{@rounding_method.abbr}"
+        "#{super}#{@rounding_method}"
       end
 
       # メッセージへの出力を返す
@@ -173,7 +148,7 @@ class AddDice
       #
       # @return [String]
       def output
-        "#{super}#{@rounding_method.abbr}"
+        "#{super}#{@rounding_method}"
       end
 
       private
@@ -181,7 +156,7 @@ class AddDice
       # S式で使う演算子の表現を返す
       # @return [String]
       def op_for_s_exp
-        "#{@op}#{@rounding_method.abbr}"
+        "#{@op}#{@rounding_method}"
       end
 
       # 演算を行う
@@ -193,7 +168,13 @@ class AddDice
           return 1
         end
 
-        return @rounding_method.divide_and_round[lhs, rhs]
+        if @rounding_method == "U"
+          (lhs.to_f / rhs).ceil
+        elsif @rounding_method == "R"
+          (lhs.to_f / rhs).round
+        else
+          lhs / rhs
+        end
       end
     end
 

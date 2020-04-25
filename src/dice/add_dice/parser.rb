@@ -101,29 +101,14 @@ class AddDice
           node = AddDice::Node::BinaryOp.new(node, :*, unary())
         elsif consume("/")
           rhs = unary()
-          rounding_method = divide_rounding_method()
-          node = Node::Divide.new(node, rhs, rounding_method)
+          prefix = take_one_of("U", "R")
+          node = Node::Divide.new(node, rhs, prefix)
         else
           break
         end
       end
 
       return node
-    end
-
-    # 端数処理方法を示す記号を読み込み、対応する端数処理方法を返す
-    # @return [Node::Divide::RoundingMethod]
-    def divide_rounding_method
-      if consume('U')
-        # 切り上げ
-        Node::Divide::ROUND_UP
-      elsif consume('R')
-        # 四捨五入
-        Node::Divide::ROUND_OFF
-      else
-        # 切り捨て
-        Node::Divide::ROUND_DOWN
-      end
     end
 
     # 単項演算
@@ -175,6 +160,24 @@ class AddDice
 
       @idx += 1
       return true
+    end
+
+    # 複数候補の中から一つトークンを取得する
+    #
+    # トークンと期待した文字列のいずれかが合致していた場合、次のトークンに進み、合致したトークンを返す
+    # 合致していなかった場合は、進まない。
+    #
+    # @param strs [Array<String>] 期待するトークン文字列
+    # @return [String] 合致したトークンの文字列
+    # @return [nil] トークンと期待した文字列が合致していなかった場合
+    def take_one_of(*strs)
+      strs.each do |s|
+        if consume(s)
+          return s
+        end
+      end
+
+      return nil
     end
 
     # 指定された文字列のトークンを要求する
